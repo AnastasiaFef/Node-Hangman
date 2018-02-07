@@ -6,6 +6,7 @@ var guesses = 10;
 var wins = 0;
 var losses = 0;
 var selectedWord;
+var myWord;
 
 grabRandomWord();
 
@@ -17,24 +18,16 @@ grabRandomWord();
 //===============================
 
 function grabRandomWord() {
-    //grabs word from words.js
-    var i = Math.floor(Math.random()*50);
-    //make it a new word object
+    var whatsLimit = words.length - 1
+    var i = Math.floor(Math.random()*whatsLimit);
     console.log(words[i])
     selectedWord = words[i];
-    // console.log(words[i]);
-    // console.log(selectedWord)
-    var myWord = new Word(selectedWord);
+    myWord = new Word(selectedWord);
     myWord.split();
-    // chop it up into different letters
-    // game.
-    // console.log(arrayOfLetters);
-
     guess();
 }
 
 function guess(){
-    //input letter with inquirer
     inquirer.prompt([
         {
             type: "input",
@@ -42,18 +35,59 @@ function guess(){
             message: 'Type a single letter and hit Enter to guess'
         }
     ]).then(function(answer){
-    //check if that letter if inside letters array - print result
-    // console.log(wins, 'game.selectedWord ', selectedWord)
-    var myWord = new Word(selectedWord);
-    myWord.split();
-    // console.log("Sending input letter to check (word) ", answer.letter)
-    myWord.map(answer.letter)
-    
-    //if true, reprint word with guessed letter included
-    //if false, decrement number of guesses
-    guess();
+        var response = myWord.map(answer.letter);
+        var opened = response[0];
+        console.lod
+        if(opened > 0){
+            // console.log(selectedWord, response[1])
+            if(selectedWord === response[1]){
+                console.log('You WON!')
+                wins ++;
+                //DISPLAY STATS
+                whatsNext();
+            }
+        }
+        else{
+            guesses -= 1;
+            if(guesses<1){
+                console.log('Looser');
+                //DISPLAY STATS
+                whatsNext();
+                return;
+            }
+        }
+
+        console.log('Guesses left: ', guesses)
+        //if true, reprint word with guessed letter included
+        //if false, decrement number of guesses
+        guess();
     })
 }
+
+
+function whatsNext(){
+    inquirer.prompt([
+        {
+            type: 'list',
+            name: 'wannaMore',
+            message: 'What\'s next?',
+            choices: ['Play more', 'Nah, I\'m done...']
+        }
+    ]).then(function(answer){
+        if(answer.wannaMore === 'Play more'){
+            guesses = 10;
+            selectedWord = '';
+            myWord = '';
+            grabRandomWord();
+        }
+        else if(answer.wannaMore === 'Nah, I\'m done...'){
+            return;
+        }
+    })
+}
+
+
+
 
 // Game.prototype.play = function(){
     //display board, shows your guesses? maybe not shows guesses left scoreboard
