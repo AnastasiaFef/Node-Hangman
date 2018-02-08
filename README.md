@@ -1,6 +1,6 @@
 # Node-Hangman
 
-A you sure you can guess these fruits?
+*A you sure you can guess these fruits?*
 
 Play this command line interface Hangman game to answer the question.
 
