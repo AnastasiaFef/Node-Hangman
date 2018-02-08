@@ -1,134 +1,121 @@
 var inquirer = require('inquirer');
 var Word = require('./lib/word.js');
 var words = require('./lib/words.js');
+var emoji = require('node-emoji');
 
-var guesses = 10;
 var wins = 0;
 var losses = 0;
-var selectedWord;
-var myWord;
 
-grabRandomWord();
+function Game(){
+    this.guesses = 10;
+    this.selectedWord = '';
+    this.myWord;
+    this.albpabet = ['a','b','c','d','e','f','g','h','i','j','k',
+    'l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
+    this.lettersGuessed = [];
+};
 
-//===============================
-// * **index.js**: The file containing the logic for the course of the game, 
-// which depends on `Word.js` and:
-//   * Randomly selects a word and uses the `Word` constructor to store it
-//   * Prompts the user for each guess and keeps track of the user's remaining guesses
-//===============================
+welcome();
 
-function grabRandomWord() {
-    var whatsLimit = words.length - 1
-    var i = Math.floor(Math.random()*whatsLimit);
-    console.log(words[i])
-    selectedWord = words[i];
-    myWord = new Word(selectedWord);
-    myWord.split();
-    guess();
+function welcome(){
+    console.log('\nWelcome to ', emoji.get(':tangerine:'), emoji.get(':pineapple:'), emoji.get(':green_apple:'), emoji.get(':apple:') ,' themed Hangman Game');
+    startGame();
 }
 
-function guess(){
+function startGame(){
+    var newGame = new Game();
+    setTimeout(function(){
+        newGame.grabRandomWord();
+    },1000)   
+}
+
+Game.prototype.grabRandomWord = function() {
+    var whatsLimit = words.length - 1
+    var i = Math.floor(Math.random()*whatsLimit);
+    this.selectedWord = words[i];
+    this.myWord = new Word(this.selectedWord);
+    this.myWord.split(); 
+    this.guess();
+};
+
+Game.prototype.guess = function(){
+    var thiss = this;
+    console.log('\n')
     inquirer.prompt([
         {
             type: "input",
             name: 'letter',
-            message: 'Type a single letter and hit Enter to guess'
+            message: 'Type a single letter and hit Enter to guess', 
         }
     ]).then(function(answer){
-        var response = myWord.map(answer.letter);
-        var opened = response[0];
-        console.lod
-        if(opened > 0){
-            // console.log(selectedWord, response[1])
-            if(selectedWord === response[1]){
-                console.log('You WON!')
-                wins ++;
-                //DISPLAY STATS
-                whatsNext();
-            }
+        var ans = answer.letter.toLowerCase();
+        if(thiss.albpabet.indexOf(ans) < 0){
+            console.log(emoji.get(':exclamation:'), 'Please enter a letter')
+            thiss.guess();
+            return;
         }
         else{
-            guesses -= 1;
-            if(guesses<1){
-                console.log('Looser');
-                //DISPLAY STATS
-                whatsNext();
+            if(thiss.lettersGuessed.indexOf(ans) >= 0){
+                console.log(emoji.get(':exclamation:'), 'Please don\'t repeat yourself!');
+                thiss.guess();
+                return;
+            }
+            else{
+                thiss.lettersGuessed.push(ans);
+            }
+        }
+        var response = thiss.myWord.map(ans);
+        var opened = response[0];
+        if(opened > 0){
+            if(thiss.selectedWord === response[1]){ //MAKE SURE I TAKE SPACE IN COUNT
+                console.log('\n',emoji.get(':apple:'), emoji.get(':pineapple:'), emoji.get(':cherries:'), emoji.get(':pear:'), emoji.get(':peach:'), emoji.get(':tangerine:'),'\n' ,emoji.get(':watermelon:'),'You WON', emoji.get(':banana:'), '\n',emoji.get(':green_apple:'),emoji.get(':grapes:'), emoji.get(':melon:'), emoji.get(':peach:'), emoji.get(':pineapple:') , emoji.get(':strawberry:'), '\n');
+                wins ++;
+                displayStats();
+                thiss.whatsNext();
+                return;
+            }
+            console.log(emoji.get('+1'), emoji.get('+1'), emoji.get('+1'), emoji.get('+1'), emoji.get('+1'))
+        }
+        else{
+            thiss.guesses -= 1;
+            console.log(emoji.get(':-1:'),'Oops...', emoji.get(':poop:'))
+            if(thiss.guesses<1){
+                losses += 1;
+                console.log('\n',emoji.get(':boom:'),emoji.get(':boom:'),emoji.get(':boom:'),emoji.get(':boom:'),emoji.get(':boom:'),'\n', emoji.get(':boom:') ,'Loser', emoji.get(':boom:'), '\n' ,emoji.get(':boom:'),emoji.get(':boom:'),emoji.get(':boom:'),emoji.get(':boom:'),emoji.get(':boom:'), '\n');
+                console.log('Didn\'t you know fruit ', thiss.selectedWord, '???', emoji.get(':anguished:'))
+                displayStats();
+                thiss.whatsNext();
                 return;
             }
         }
-
-        console.log('Guesses left: ', guesses)
-        //if true, reprint word with guessed letter included
-        //if false, decrement number of guesses
-        guess();
+        var guessed = '';
+        thiss.lettersGuessed.forEach(function(lettr){
+            guessed += lettr + ' ';
+        })
+        console.log('Guesses left: ', thiss.guesses, '\nAlready guessed letters: ', guessed);
+        thiss.guess();
     })
-}
+};
 
-
-function whatsNext(){
+Game.prototype.whatsNext = function (){
     inquirer.prompt([
         {
             type: 'list',
             name: 'wannaMore',
             message: 'What\'s next?',
-            choices: ['Play more', 'Nah, I\'m done...']
+            choices: ['Play again', 'Nah, I\'m done...']
         }
     ]).then(function(answer){
         if(answer.wannaMore === 'Play more'){
-            guesses = 10;
-            selectedWord = '';
-            myWord = '';
-            grabRandomWord();
+            startGame();
         }
         else if(answer.wannaMore === 'Nah, I\'m done...'){
+            console.log(emoji.get(':poop:'), emoji.get(':poop:'), emoji.get(':poop:'), "Don\'t come back!!!", emoji.get(':poop:'), emoji.get(':poop:'), emoji.get(':poop:'))
             return;
         }
     })
 }
 
-
-
-
-// Game.prototype.play = function(){
-    //display board, shows your guesses? maybe not shows guesses left scoreboard
-    // this.grabRandomWord();
-    //check to see if word is guesses completely, then if so, increment wins and ask if want a new game
-    //if guesses <=0 prompt 'you suck' ask if wants new game, increment losses
-
-// };
-
-    // Save a reference for `this` in `self` as `this` will change inside of inquirer
-    
-  
-    // Creates a new Word object using a random word from the array, asks the user for their guess
-  
-    // Uses inquirer to prompt the user for their guess
-  
-        // If the user has no guesses remaining after this guess, show them the word, ask if they want to play again
-  
-          // If the user guessed all letters of the current word corrently, reset guessesLeft to 10 and get the next word
-  
-  
-          // Otherwise prompt the user to guess the next letter
-  
-  
-    // Asks the user if they want to play again after running out of guessesLeft
-  
-          // If the user says yes to another game, play again, otherwise quit the game
-    
-  
-    // Prompts the user for a letter
-  
-              // The users guess must be a number or letter
-   
-          // If the user's guess is in the current word, log that they chose correctly
-  
-  
-            // Otherwise decrement `guessesLeft`, and let the user know how many guesses they have left
-  
-  
-    // Logs goodbye and exits the node app
-  
-
-  
-//   module.exports = Game;
+function displayStats(){
+    console.log('Wins: ', wins, '\nLosses: ', losses, '\n')
+}
