@@ -106,7 +106,7 @@ Game.prototype.whatsNext = function (){
             choices: ['Play again', 'Nah, I\'m done...']
         }
     ]).then(function(answer){
-        if(answer.wannaMore === 'Play more'){
+        if(answer.wannaMore === 'Play again'){
             startGame();
         }
         else if(answer.wannaMore === 'Nah, I\'m done...'){
